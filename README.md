@@ -1,11 +1,11 @@
 # Avaliacao pratica - backend
 
-API REST simples para classificar mensagens curtas em categorias usando regras de palavras-chave com pesos. Feita para ser pequena, didatica e facil de testar.
+API HTTP (estilo REST) para classificar mensagens curtas em categorias usando regras de palavras-chave com pesos. Feita para ser pequena, didatica e facil de testar.
 
 ## Requisitos
 
 - Python 3.11+
-- Nenhuma dependencia externa
+- Somente Python stdlib (nenhuma dependencia externa)
 
 Conferir a versao do Python:
 
@@ -135,14 +135,21 @@ No terminal do servidor, cada requisicao gera um log parecido com:
 
 ## Contrato do endpoint
 
+- `GET /` (healthcheck): status simples da API
 - `POST /classificar`
-- Body JSON: `{"texto": "..."}`
-- Resposta: `{"categoria": "...", "palavras_chave": [...]}`
+  - Body JSON: `{"texto": "..."}`
+  - Resposta: `{"categoria": "...", "palavras_chave": [...]}`
 
 Validacao basica (HTTP 400 em caso de erro):
 - `texto` precisa ser string
 - `texto` nao pode ser vazio ou so espacos
 - tamanho maximo: 500 caracteres
+
+Codigos HTTP utilizados:
+- `200` sucesso
+- `400` erros de validacao (`texto_vazio`, `texto_invalido`, `texto_muito_longo`, `json_invalido`, `tamanho_conteudo_ausente`)
+- `405` metodo nao permitido (ex.: GET em `/classificar`)
+- `404` rota nao encontrada
 
 ## Erros comuns e o que significam
 
@@ -154,7 +161,7 @@ Validacao basica (HTTP 400 em caso de erro):
 
 ## Categorias e regras
 
-As categorias usam palavras-chave normalizadas (minusculas e sem acentos). Cada palavra tem peso (1 a 3); a pontuacao da categoria e a soma dos pesos encontrados; a maior pontuacao vence.
+As categorias abaixo sao um exemplo e podem ser adaptadas ao dominio. Todas usam palavras-chave normalizadas (minusculas e sem acentos). Cada palavra tem peso (1 a 3); a pontuacao da categoria e a soma dos pesos encontrados; a maior pontuacao vence.
 
 - `elogio`: obrigado, otimo, otima, excelente, parabens, amei...
 - `reclamacao`: ruim, pessimo, problema, problemas, demora, "nao funciona", "nao esta funcionando", "cobrado duas vezes"...
@@ -206,7 +213,7 @@ OK
 
 - Ajustar regras por dominio e refinar pesos
 - Criar arquivo de configuracao (JSON) para regras e pesos (sem endpoint)
-- Substituir por modelo de ML ou LLM com explicacao de resultados
+- (Opcional) Integrar modelo/LLM mantendo fallback por regras e explicabilidade
 
 ## Fontes
 
