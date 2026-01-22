@@ -1,49 +1,33 @@
 # Avaliacao pratica - backend
 
-Este projeto cria uma API REST simples para classificar mensagens curtas em categorias.
-Ele foi feito para ser pequeno, facil de entender e rapido de testar.
-
-## Para quem e este README
-
-Se voce nunca testou uma API antes, siga o passo a passo abaixo.
-Nao precisa instalar nada alem do Python.
-
-## O que este projeto faz
-
-- Recebe um texto curto em JSON.
-- Aplica regras simples de palavras-chave com pesos.
-- Devolve a categoria encontrada.
-
-Exemplo de categoria: `elogio`, `reclamacao`, `duvida`, `financeiro`.
+API REST simples para classificar mensagens curtas em categorias usando regras de palavras-chave com pesos. Feita para ser pequena, didatica e facil de testar.
 
 ## Requisitos
 
-- Python 3.11+ instalado.
-- Nenhuma dependencia externa.
+- Python 3.11+
+- Nenhuma dependencia externa
 
-Para conferir a versao do Python:
+Conferir a versao do Python:
 
 ```bash
 python3 --version
 ```
 
-## Como executar (passo a passo)
+## Como executar (tutorial passo a passo)
 
-1) Abra o terminal na pasta do projeto.
-
-2) Inicie o servidor:
+1) Abra o terminal na pasta do projeto e inicie o servidor (deixe este terminal aberto):
 
 ```bash
 python3 servidor.py --host 127.0.0.1 --port 8000
 ```
 
-Voce deve ver algo parecido com:
+O que esperar no terminal do servidor:
 
 ```
 Servidor rodando em http://127.0.0.1:8000
 ```
 
-3) (Opcional) Verifique se o servidor esta vivo acessando a raiz:
+2) Abra outro terminal para testar sem interromper o servidor. Verifique o status:
 
 ```bash
 curl http://127.0.0.1:8000/
@@ -55,12 +39,14 @@ Resposta esperada:
 {"mensagem": "API de classificacao ativa.", "uso": "Envie POST /classificar com JSON {'texto': '...'}"}
 ```
 
-4) Envie uma requisicao para classificar um texto:
+3) Envie requisicoes de exemplo para cada categoria:
+
+- Financeiro:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/classificar \
   -H "Content-Type: application/json" \
-  -d '{"texto": "Qual o valor da assinatura?"}'
+  -d '{"texto": "Qual o valor da assinatura mensal?"}'
 ```
 
 Resposta esperada:
@@ -69,77 +55,159 @@ Resposta esperada:
 {"categoria": "financeiro", "palavras_chave": ["valor", "assinatura"]}
 ```
 
-5) Para encerrar o servidor, use `Ctrl + C` no terminal.
+- Duvida:
 
-## Importante sobre o endpoint
+```bash
+curl -X POST http://127.0.0.1:8000/classificar \
+  -H "Content-Type: application/json" \
+  -d '{"texto": "Como faco para alterar meu plano?"}'
+```
 
-- A rota `/classificar` aceita somente `POST`.
-- Se tentar `GET /classificar` no navegador, o servidor responde `405`.
-- A rota `/` existe apenas para informar que a API esta ativa.
+Resposta esperada:
 
-## Contrato do endpoint (resumo)
+```json
+{"categoria": "duvida", "palavras_chave": ["como"]}
+```
+
+- Reclamacao:
+
+```bash
+curl -X POST http://127.0.0.1:8000/classificar \
+  -H "Content-Type: application/json" \
+  -d '{"texto": "O aplicativo nao esta funcionando desde ontem."}'
+```
+
+Resposta esperada:
+
+```json
+{"categoria": "reclamacao", "palavras_chave": ["nao esta funcionando"]}
+```
+
+- Elogio:
+
+```bash
+curl -X POST http://127.0.0.1:8000/classificar \
+  -H "Content-Type: application/json" \
+  -d '{"texto": "A experiencia com o sistema foi otima."}'
+```
+
+Resposta esperada:
+
+```json
+{"categoria": "elogio", "palavras_chave": ["otima"]}
+```
+
+- Outros (fallback):
+
+```bash
+curl -X POST http://127.0.0.1:8000/classificar \
+  -H "Content-Type: application/json" \
+  -d '{"texto": "Teste"}'
+```
+
+Resposta esperada:
+
+```json
+{"categoria": "outros", "palavras_chave": []}
+```
+
+- Exemplo invalido (texto vazio):
+
+```bash
+curl -X POST http://127.0.0.1:8000/classificar \
+  -H "Content-Type: application/json" \
+  -d '{"texto": "   "}'
+```
+
+Resposta esperada (HTTP 400):
+
+```json
+{"erro": "texto_vazio", "detalhe": "texto nao pode ser vazio."}
+```
+
+No terminal do servidor, cada requisicao gera um log parecido com:
+
+```
+127.0.0.1 - - [data/hora] "POST /classificar HTTP/1.1" 200 -
+```
+
+4) Para encerrar o servidor, volte ao terminal onde ele esta rodando e use `Ctrl + C`. A mensagem esperada e `Encerrando servidor.`
+
+## Contrato do endpoint
 
 - `POST /classificar`
 - Body JSON: `{"texto": "..."}`
 - Resposta: `{"categoria": "...", "palavras_chave": [...]}`
 
-Validacao basica:
-- `texto` precisa ser string.
-- `texto` nao pode ser vazio.
-- tamanho maximo: 500 caracteres.
+Validacao basica (HTTP 400 em caso de erro):
+- `texto` precisa ser string
+- `texto` nao pode ser vazio ou so espacos
+- tamanho maximo: 500 caracteres
 
-## Erros comuns e como entender
+## Erros comuns e o que significam
 
-- `json_invalido`: o corpo nao e um JSON valido.
-- `texto_invalido`: o campo `texto` nao e string.
-- `texto_vazio`: o campo `texto` veio vazio.
-- `texto_muito_longo`: o texto passou do limite.
-- `metodo_nao_permitido`: voce tentou `GET` em `/classificar`.
+- `json_invalido`: corpo nao e JSON valido
+- `texto_invalido`: campo `texto` nao e string
+- `texto_vazio`: campo `texto` veio vazio
+- `texto_muito_longo`: limite de 500 caracteres excedido
+- `metodo_nao_permitido`: tentou `GET` em `/classificar`
 
 ## Categorias e regras
 
-As categorias sao baseadas em palavras-chave com normalizacao simples (minusculas e sem acentos).
-Cada palavra possui um peso (1 a 3). A pontuacao da categoria e a soma dos pesos encontrados.
-A maior pontuacao vence.
+As categorias usam palavras-chave normalizadas (minusculas e sem acentos). Cada palavra tem peso (1 a 3); a pontuacao da categoria e a soma dos pesos encontrados; a maior pontuacao vence.
 
-- `elogio`: obrigado, otimo, excelente, parabens, amei...
-- `reclamacao`: ruim, pessimo, problema, demora, "nao funciona"...
+- `elogio`: obrigado, otimo, otima, excelente, parabens, amei...
+- `reclamacao`: ruim, pessimo, problema, problemas, demora, "nao funciona", "nao esta funcionando", "cobrado duas vezes"...
 - `duvida`: como, quando, onde, qual, ajuda, posso...
-- `financeiro`: preco, valor, pagamento, cobranca, boleto, cartao...
-- `outros`: fallback quando nenhuma regra casa.
+- `financeiro`: preco, valor, pagamento, cobranca, cobrado, boleto, cartao...
+- `outros`: fallback quando nenhuma regra casa
 
-## Testes (opcional)
+## Testes
 
-Os testes conferem se as regras estao funcionando.
+Rodar todos os testes (classificador + servidor):
 
 ```bash
 python3 -m unittest discover -s tests
 ```
 
+Rodar apenas os testes do servidor (validacao do endpoint):
+
+```bash
+python3 -m unittest tests/test_servidor.py
+```
+
+Saida esperada (resumo):
+
+```
+Ran 13 tests in ...
+OK
+```
+
 ## Estrutura dos arquivos
 
-- `servidor.py`: servidor HTTP e validacao do request.
-- `classificador.py`: regras e logica de classificacao.
-- `tests/test_classificador.py`: testes do classificador.
+- `servidor.py`: servidor HTTP e validacao do request
+- `classificador.py`: regras, pesos e logica de classificacao
+- `tests/test_classificador.py`: testes unitarios do classificador
+- `tests/test_servidor.py`: testes de validacao do endpoint HTTP
 
 ## Decisoes tecnicas
 
-- Servidor HTTP direto com `http.server` para manter a solucao pequena e didatica.
-- Classificador por regras para garantir previsibilidade e facilitar explicacao.
-- Normalizacao de texto para reduzir variacao de maiusculas e acentos.
+- Servidor HTTP direto com `http.server` para manter a solucao pequena e didatica
+- Classificador por regras e pesos para previsibilidade e explicacao clara
+- Normalizacao de texto para lidar com maiusculas e acentos
 
 ## Limitacoes
 
-- As regras sao simples e podem gerar falsos positivos/negativos.
-- Empates sao resolvidos pela ordem das regras.
-- Nao ha persistencia nem autenticacao.
+- Regras simples podem gerar falsos positivos/negativos
+- Empates (mesma pontuacao) ainda seguem ordem fixa das categorias
+- Nao ha persistencia nem autenticacao
 
 ## Possiveis extensoes
 
-- Ajustar regras por dominio e refinar pesos.
-- Criar arquivo de configuracao (JSON) para regras e pesos, sem endpoint.
-- Substituir por modelo de ML ou LLM com explicacao de resultados.
+- Ajustar regras por dominio e refinar pesos
+- Criar arquivo de configuracao (JSON) para regras e pesos (sem endpoint)
+- Substituir por modelo de ML ou LLM com explicacao de resultados
 
 ## Fontes
 
-- Nenhuma fonte externa utilizada.
+- Nenhuma fonte externa utilizada
