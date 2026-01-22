@@ -8,6 +8,7 @@ import unicodedata
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 
+# Extrai tokens simples apos normalizacao (minusculas e sem acentos).
 PADRAO_TOKEN = re.compile(r"[a-z0-9]+")
 
 
@@ -36,6 +37,7 @@ class ClassificadorPorRegras:
         melhores_palavras_chave: List[str] = []
         melhor_pontuacao = 0
 
+        # Soma pesos das palavras encontradas e escolhe a maior pontuacao.
         for regra in self._regras:
             palavras_encontradas: List[str] = []
             pontuacao = 0
@@ -60,6 +62,7 @@ class ClassificadorPorRegras:
 
 
 def normalizar_texto(texto: str) -> str:
+    # Remove acentos e normaliza para minusculas.
     normalizado = unicodedata.normalize("NFKD", texto)
     sem_acentos = "".join(
         caractere for caractere in normalizado if not unicodedata.combining(caractere)
@@ -81,6 +84,7 @@ def _normalizar_palavras_chave(
     palavras_token: List[Tuple[str, int]] = []
     palavras_frase: List[Tuple[str, int]] = []
 
+    # Separa palavras unicas de frases com espacos.
     for palavra_chave, peso in palavras_chave:
         palavra_normalizada = normalizar_texto(palavra_chave)
         if " " in palavra_normalizada:
@@ -93,6 +97,7 @@ def _normalizar_palavras_chave(
 
 def criar_classificador_padrao() -> ClassificadorPorRegras:
     regras: List[RegraPalavraChave] = []
+    # Pesos simples (1 a 3) para resolver ambiguidades.
     palavras_por_categoria: Dict[str, Tuple[Tuple[str, int], ...]] = {
         "elogio": (
             ("obrigado", 2),

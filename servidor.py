@@ -16,6 +16,7 @@ TAMANHO_MAXIMO_TEXTO = 500
 
 class ManipuladorClassificacao(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
+        # Verificacao simples para indicar que a API esta ativa.
         if self.path == "/":
             self._enviar_json(
                 HTTPStatus.OK,
@@ -27,6 +28,7 @@ class ManipuladorClassificacao(BaseHTTPRequestHandler):
             return
 
         if self.path == "/classificar":
+            # Metodo nao permitido para esta rota.
             self._enviar_json_com_cabecalhos(
                 HTTPStatus.METHOD_NOT_ALLOWED,
                 {
@@ -48,6 +50,7 @@ class ManipuladorClassificacao(BaseHTTPRequestHandler):
             self._enviar_json(HTTPStatus.NOT_FOUND, {"erro": "rota_nao_encontrada"})
             return
 
+        # Valida JSON e campos basicos antes de classificar.
         corpo, resposta_erro = self._ler_corpo_json()
         if resposta_erro is not None:
             self._enviar_json(HTTPStatus.BAD_REQUEST, resposta_erro)
@@ -91,6 +94,7 @@ class ManipuladorClassificacao(BaseHTTPRequestHandler):
         self._enviar_json(HTTPStatus.OK, resposta)
 
     def _ler_corpo_json(self) -> Tuple[Optional[Any], Optional[Dict[str, str]]]:
+        # Le o corpo da requisicao e tenta converter para JSON valido.
         tamanho_conteudo = self.headers.get("Content-Length")
         if tamanho_conteudo is None:
             return None, {
@@ -136,6 +140,7 @@ class ManipuladorClassificacao(BaseHTTPRequestHandler):
         carga: Dict[str, Any],
         cabecalhos: Dict[str, str],
     ) -> None:
+        # Envia JSON com cabecalhos extras (ex.: Allow).
         resposta_bytes = json.dumps(carga).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")

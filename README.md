@@ -135,7 +135,7 @@ No terminal do servidor, cada requisicao gera um log parecido com:
 
 ## Contrato do endpoint
 
-- `GET /` (healthcheck): status simples da API
+- `GET /` (verificacao de saude): status simples da API
 - `POST /classificar`
   - Body JSON: `{"texto": "..."}`
   - Resposta: `{"categoria": "...", "palavras_chave": [...]}`
